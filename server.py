@@ -5,6 +5,10 @@ from fastapi import FastAPI
 import requests
 from gigachat import GigaChat
 
+from database import init_db, save_message, get_history
+
+init_db()
+
 load_dotenv()
 GIGACHAT_CREDS = os.getenv("GIGACHAT_CREDENTIALS")
 
@@ -25,6 +29,17 @@ def home():
 
 @app.post("/ask")
 def ask_ai(request: UserRequest):
+
+    history = get_history(request.name)
+
+    context = "Its a history of massages:\n"
+    for user_msg, ai_msg in reversed(history):
+        context += f"user: {user_msg}\nAI: {ai_msg}\n"
+
+    full_prompt = f"{context}\nNewQuestion from {request.name}: {request.message}"
+
+
+
     try:
 
         with GigaChat(credentials=GIGACHAT_CREDS,
@@ -32,14 +47,15 @@ def ask_ai(request: UserRequest):
                       verify_ssl_certs=False
                       ) as giga:
 
-            response = giga.chat(request.message)
+            response = giga.chat(full_prompt)
 
             ai_text = response.choices[0].message.content
 
+        save_message(request.name, request.message, ai_text)
+
         return {
-            "user": request.name,
-            "question": request.message,
-            "ai_answer": ai_text
+            "ai_answer": ai_text, 
+            "memory_status": f"В базе сохранено сообщений для {request.name}: {len(history)+ 1}"
         }
     except Exception as e:
         return {"error": str(e)}
