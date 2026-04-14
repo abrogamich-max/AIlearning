@@ -1,31 +1,30 @@
+import os
+from pydantic import BaseModel
+from dotenv import load_dotenv
 from fastapi import FastAPI
 import requests
 
+load_dotenv()
+AI_TOKEN = os.getenv("AI_TOKEN")
+
 app = FastAPI()
 
-def get_space_data():
-    url = "http://api.open-notify.org/astros.json"
-    try:
-        response = requests.get(url, timeout=5)
-        return response.json()
-    except Exception:
-        return{"error": "Failed to fetch space data"}
-
-
+class UserRequest(BaseModel):
+    name: str 
+    message: str
 
 @app.get("/")
 def home():
-    return{"message": "Its a backend of our AI assistant"}
+    return {"message": "Server is running", "token_loaded": bool(AI_TOKEN)}
 
-@app.get("/status")
-def get_status():
-    space_info = get_space_data()
+@app.post("/ask")
+def ask_ai(request: UserRequest):
+    user_message = request.message
+
+    ai_response = f"Hello, {request.name}! You asked: '{user_message}'. this is my response to your question: [ANSWER]."
+
     return {
-        "space_info": space_info
+        "user_sent": user_message,
+        "ai_answer": ai_response
     }
 
-@app.get("/ai-status")
-def ai_status():
-    return {
-        "model": "GigaChat", "status": "learning", "step": 5
-    }
