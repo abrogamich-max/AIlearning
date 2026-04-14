@@ -1,7 +1,9 @@
 
 from os import name
 from sys import prefix
+import api_test
 
+space_info = api_test.get_space_data()
 
 user_queue = [
 {"name": "Max", "request": "What is a neuroweb?", "mood": "Happy", "is_premium": True},
@@ -22,7 +24,7 @@ def process_ai_request(user_info: dict) -> str:
         elif mood == "Unhappy":
             greeting = f"Hi {name}, I'm sorry to hear you're not feeling well. How can I assist you today?"
         else:
-            greeting = f"Hello {name}, how can I assist you today?"
+            greeting = f"Hello {name}, how can I assist you today? {space_info['number']} people are currently in space, which is quite fascinating!"
         prefix = "[PREMIUMANSWER] " if is_premium else ""
         return f"{prefix}{greeting} You asked: '{query}'. Here's the answer to your question: [ANSWER]."
     else: 
@@ -38,6 +40,6 @@ print("--- Launching AI Assistant ---")
 
 for user in user_queue:
     answer = process_ai_request(user)
-    print(answer)
+    print(f"{answer} {space_info['number']} people are currently in space, which is quite fascinating!")
 
 
