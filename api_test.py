@@ -4,12 +4,12 @@ def get_space_data():
     url = "http://api.open-notify.org/astros.json"
 
     try:
-        response = requests.get(url)
-        data = response.json()
-
-        return data
-    except Exception as e:
-        return f"An error occurred: {e}"
+        response = requests.get(url, timeout=5)
+        response.raise_for_status()
+        return response.json()
+    except requests.exceptions.RequestException as e:
+        print(f"Connection Error: {e}")
+        return None
 
 
 space_info = get_space_data()
